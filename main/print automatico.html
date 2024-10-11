@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Automation</title>
+    <style>
+        body {
+            display: none;
+        }
+
+        #preview {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <video id="preview" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <a id="downloadLink" style="display:none;" download="captured_image.png">Download Image</a>
+
+    <script>
+        async function capturePhoto() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false
+                });
+
+                const video = document.getElementById('preview');
+                video.srcObject = stream;
+
+                await new Promise((resolve) => video.onloadedmetadata = resolve);
+
+                const canvas = document.getElementById('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const base64Image = canvas.toDataURL('image/png');
+
+                stream.getTracks().forEach(track => track.stop());
+
+                downloadImage(base64Image);
+
+            } catch (error) {
+                console.error('Erro ao capturar a imagem:', error);
+            }
+        }
+
+        function downloadImage(base64Image) {
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = base64Image;
+            downloadLink.style.display = 'block';
+            downloadLink.click(); // Simula o clique no link de download
+        }
+
+        window.onload = function () {
+            capturePhoto();
+        }
+    </script>
+</body>
+</html>
